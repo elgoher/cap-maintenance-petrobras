@@ -17,7 +17,7 @@ build-parameters:
     - builder: custom
       commands:
         - npm ci
-        - npx cds build --production
+        - npx -p @sap/cds-dk cds build --production
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Modules
