@@ -1,0 +1,41 @@
+# .pipeline/config.yml
+# SAP BTP Continuous Integration & Delivery Service
+# Pipeline: SAP Cloud Application Programming Model (CAP + MTA)
+#
+# How to use:
+#   1. Go to BTP Cockpit → CI/CD Service → Jobs → Create Job
+#   2. Repository: point to this GitHub repo (requires GitHub credential in BTP CI/CD)
+#   3. Branch: main
+#   4. Pipeline: "SAP Cloud Application Programming Model"
+#   5. This file is picked up automatically for stage-level overrides
+
+general:
+  buildTool: "mta"                    # use SAP MTA Build Tool
+
+service:
+  buildToolVersion: "MBTJ11N20"       # MBT + Java 11 + Node 20
+
+stages:
+
+  # ── Build ─────────────────────────────────────────────────────────────────────
+  Build:
+    mavenExecuteStaticCodeChecks: false
+
+  # ── Test ──────────────────────────────────────────────────────────────────────
+  # The CI/CD service runs: npm ci --ignore-scripts && CDS_ENV=test npm test
+  "Additional Unit Tests":
+    npmExecuteScripts: true
+
+  # ── Release ───────────────────────────────────────────────────────────────────
+  # Upload the produced .mtar archive to SAP Cloud Transport Management (TMS).
+  # The artifact lands in the "DEV" transport node inbox; operators forward it
+  # through the route (DEV → QA → PROD) via the TMS Cockpit.
+  #
+  # Required credential in BTP CI/CD:
+  #   Name : tms-service-key
+  #   Type : Service Key
+  #   Value: service key JSON of the Cloud Transport Management service instance
+  Release:
+    tmsUpload: true
+    tmsNodeName: "DEV"                # target TMS node (first node in your route)
+    tmsCredentialsId: "tms-service-key"
