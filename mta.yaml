@@ -16,8 +16,8 @@ build-parameters:
   before-all:
     - builder: custom
       commands:
-        - npm ci
-        - npx -p @sap/cds-dk cds build --production
+        - npm ci --ignore-scripts
+        - node_modules/.bin/cds build --production
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Modules
