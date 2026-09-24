@@ -16,8 +16,8 @@ build-parameters:
   before-all:
     - builder: custom
       commands:
-        - npm install --no-save @sap/cds-dk
-        - node_modules/.bin/cds build --production
+        - mkdir -p /tmp/cds-dk-build && cd /tmp/cds-dk-build && npm install @sap/cds-dk
+        - /tmp/cds-dk-build/node_modules/.bin/cds build --production
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Modules
