@@ -16,8 +16,8 @@ build-parameters:
   before-all:
     - builder: custom
       commands:
-        - npm install --omit=dev --workspaces=false --no-audit --no-fund @sap/cds-dk
-        - node_modules/.bin/cds build --production
+        - npm install --omit=dev --omit=optional --workspaces=false @sap/cds-dk
+        - node node_modules/@sap/cds-dk/bin/cds.js build --production
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Modules
