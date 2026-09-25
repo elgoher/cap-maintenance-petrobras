@@ -3,7 +3,7 @@ sap.ui.define(
     function (Component) {
         "use strict";
 
-        return Component.extend("com.sap.mngords.maintenanceorderes.Component", {
+        return Component.extend("petrobras.maintenance.s2.maintenanceorderes.Component", {
             metadata: {
                 manifest: "json"
             }
