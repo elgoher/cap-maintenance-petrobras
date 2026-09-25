@@ -8,6 +8,7 @@ description: "CAP Workshop Session 2 — Petrobras Maintenance System"
 # ─────────────────────────────────────────────────────────────────────────────
 parameters:
   enable-parallel-deployments: true
+  deploy_mode: html5-repo
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Build parameters (global)
@@ -54,28 +55,65 @@ modules:
     requires:
       - name: petrobras-maintenance-s2-db
 
-  # ── 3. Approuter (optional — enables Fiori Elements preview with XSUAA) ────
-  #  Uncomment this module if you want to serve the UI through an approuter
-  #  with full XSUAA-based authentication.
-  #
-  # - name: petrobras-maintenance-s2-approuter
-  #   type: approuter.nodejs
-  #   path: approuter
-  #   parameters:
-  #     memory: 256M
-  #     disk-quota: 1024M
-  #   requires:
-  #     - name: petrobras-maintenance-s2-auth
-  #       parameters:
-  #         config:
-  #           xsappname: ~{xsappname}
-  #           tenant-mode: dedicated
-  #     - name: srv-api
-  #       group: destinations
-  #       properties:
-  #         name: srv-api
-  #         url: ~{srv-url}
-  #         forwardAuthToken: true
+  # ── 3. Fiori App — maintenance-orderes ────────────────────────────────────
+  - name: petrobras-maintenance-s2-app-fiori
+    type: html5
+    path: app/maintenance-orderes
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+
+  # ── 4. HTML5 App Content — sube ZIPs al repositorio ───────────────────────
+  - name: petrobras-maintenance-s2-app-content
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: petrobras-maintenance-s2-html5-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - artifacts:
+            - petrobras-maintenance-s2-maintenanceorderes.zip
+          name: petrobras-maintenance-s2-app-fiori
+          target-path: resources/
+
+  # ── 5. Destination Content — registra destinos para el HTML5 runtime ──────
+  - name: petrobras-maintenance-s2-destination-content
+    type: com.sap.application.content
+    requires:
+      - name: petrobras-maintenance-s2-destination
+        parameters:
+          content-target: true
+      - name: petrobras-maintenance-s2-html5-repo-host
+        parameters:
+          service-key:
+            name: petrobras-maintenance-s2-html5-repo-host-key
+      - name: petrobras-maintenance-s2-auth
+        parameters:
+          service-key:
+            name: petrobras-maintenance-s2-auth-key
+    parameters:
+      content:
+        instance:
+          destinations:
+            - Name: petrobras_maintenance_s2_html_repo_host
+              ServiceInstanceName: petrobras-maintenance-s2-html5-app-host-service
+              ServiceKeyName: petrobras-maintenance-s2-html5-repo-host-key
+              sap.cloud.service: petrobras.maintenance.s2
+            - Authentication: OAuth2UserTokenExchange
+              Name: petrobras_maintenance_s2_uaa
+              ServiceInstanceName: petrobras-maintenance-s2-auth
+              ServiceKeyName: petrobras-maintenance-s2-auth-key
+              sap.cloud.service: petrobras.maintenance.s2
+          existing_destinations_policy: ignore
+    build-parameters:
+      no-source: true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Resources (BTP service instances)
@@ -109,10 +147,24 @@ resources:
       service: destination
       service-plan: lite
       config:
+        HTML5Runtime_enabled: true
+        version: 1.0.0
         init_data:
           instance:
             existing_destinations_policy: update
             destinations:
+              - Authentication: NoAuthentication
+                Name: ui5
+                ProxyType: Internet
+                Type: HTTP
+                URL: https://ui5.sap.com
+              - Authentication: NoAuthentication
+                HTML5.DynamicDestination: true
+                HTML5.ForwardAuthToken: true
+                Name: petrobras-maintenance-s2-srv-api
+                ProxyType: Internet
+                Type: HTTP
+                URL: ~{srv-api/srv-url}
               # Replace the URL, client-id, client-secret, and token URL below
               # with the actual values for your SparePartsAPI system.
               - Name: SparePartsAPI
@@ -126,3 +178,13 @@ resources:
                 tokenServiceURLType: Dedicated
                 HTML5.DynamicDestination: true
                 ProxyType: Internet
+    requires:
+      - name: srv-api
+
+  # ── HTML5 Application Repository (app-host) ────────────────────────────────
+  - name: petrobras-maintenance-s2-html5-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-name: petrobras-maintenance-s2-html5-app-host-service
+      service-plan: app-host

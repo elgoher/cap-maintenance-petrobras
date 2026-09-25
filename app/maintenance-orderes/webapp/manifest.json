@@ -1,7 +1,7 @@
 {
   "_version": "1.86.0",
   "sap.app": {
-    "id": "com.sap.mngords.maintenanceorderes",
+    "id": "petrobras.maintenance.s2.maintenanceorderes",
     "type": "application",
     "i18n": "i18n/i18n.properties",
     "applicationVersion": {
@@ -74,7 +74,7 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "com.sap.mngords.maintenanceorderes.i18n.i18n"
+          "bundleName": "petrobras.maintenance.s2.maintenanceorderes.i18n.i18n"
         }
       },
       "": {
