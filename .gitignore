@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # auto generated wildcard
 db/.env
+gen/db/package-lock.json
+gen/*
+mta_archives/archive.mtar
